@@ -50,11 +50,11 @@ class Promise(object):
 
     @lock.synchronizemethod
     def __run_onerror(self):
-        if self.__error is not EMPTY and self.__onerror is not None:
-            self.__onerror.run(self.__error)
-
-        if self.__onerror is None:
-            traceback.print_exc()
+        if self.__error is not EMPTY:
+            if self.__onerror is not None:
+                self.__onerror.run(self.__error)
+            else:
+                traceback.print_exc()
 
 
     def __run(self, *argl, **argd):
