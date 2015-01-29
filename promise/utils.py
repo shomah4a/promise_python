@@ -3,32 +3,54 @@
 from . import promise
 
 
-def onerror(e):
+def __retval(v, err=None):
 
-    print e
+    if err is not None:
+        raise err
+
+    return v
 
 
-def __next(val, it):
+def __next(result, val, it):
 
     def _f(v):
         try:
             prom = it.send(v)
-            __next(prom, it)
+            __next(result, prom, it)
+        except KeyboardInterrupt:
+            pass
         except StopIteration:
-            print 'owari'
+            result.run(v)
+        except Exception, e:
+            result.run(None, e)
 
-    val.then(_f)
-    val.onerror(onerror)
+    def _e(err):
+        result.run(None, err)
+
+    val.then(_f, _e)
 
 
-def __async(gen, *argl, **argd):
-    it = gen(*argl, **argd)
-    val = it.next()
+def __async(gen, result, *argl, **argd):
 
-    __next(val, it)
+    try:
+
+        it = gen(*argl, **argd)
+        val = it.next()
+
+        __next(result, val, it)
+    except KeyboardInterrupt:
+        pass
+    except StopIteration:
+        pass
+    except Exception, e:
+        result.run(None, e)
 
 
 
 def async(gen, *argl, **argd):
 
-    return promise.promise(__async, gen, *argl, **argd)
+    result = promise.Promise(__retval)
+
+    promise.promise(__async, gen, result, *argl, **argd)
+
+    return result

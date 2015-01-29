@@ -79,25 +79,18 @@ class Promise(object):
 
 
     @lock.synchronizemethod
-    def then(self, f):
+    def then(self, handle, error=None):
 
         if self.__next is None:
-            self.__next = Promise(f)
+            self.__next = Promise(handle)
+
+        if self.__onerror is None and error is not None:
+            self.__onerror = Promise(error)
 
         self.__run_next()
-
-        return self.__next
-
-
-    @lock.synchronizemethod
-    def onerror(self, f):
-
-        if self.__onerror is None:
-            self.__onerror = Promise(f)
-
         self.__run_onerror()
 
-        return self.__onerror
+        return self.__next
 
 
 def promise(func, *argl, **argd):
