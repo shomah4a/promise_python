@@ -33,10 +33,8 @@ def __next(result, val, it):
 def __async(gen, result, *argl, **argd):
 
     try:
-
         it = gen(*argl, **argd)
         val = it.next()
-
         __next(result, val, it)
     except KeyboardInterrupt:
         pass
