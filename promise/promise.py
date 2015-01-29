@@ -2,6 +2,7 @@
 
 import threading
 import functools
+import traceback
 
 from . import lock
 
@@ -52,12 +53,19 @@ class Promise(object):
         if self.__error is not EMPTY and self.__onerror is not None:
             self.__onerror.run(self.__error)
 
+        if self.__onerror is None:
+            traceback.print_exc()
+
 
     def __run(self, *argl, **argd):
 
         try:
             ret = self.func(*argl, **argd)
             self.__set_value(ret)
+        except KeyboardInterrupt:
+            pass
+        except StopIteration:
+            pass
         except Exception, e:
             self.__set_error(e)
 
